@@ -26,9 +26,14 @@ int main(void)
 
 	// Usando el config creado previamente, leemos los valores del config y los 
 	// dejamos en las variables 'ip', 'puerto' y 'valor'
+	ip = leer_config_char_por_key(config, "IP");
+	puerto = leer_config_char_por_key(config, "PUERTO");
+	valor = leer_config_char_por_key(config, "CLAVE");
 
 	// Loggeamos el valor de config
-
+	log_info(logger, ip);
+	log_info(logger, puerto);
+	log_info(logger, valor);
 
 	/* ---------------- LEER DE CONSOLA ---------------- */
 
@@ -67,7 +72,25 @@ t_config* iniciar_config(void)
 {
 	t_config* nuevo_config;
 
+	nuevo_config = config_create("cliente.config");
+
+	if (nuevo_config == NULL) {
+    	// ¡No se pudo crear el config!
+    	// Terminemos el programa
+		abort();
+	}
+
 	return nuevo_config;
+}
+
+char* leer_config_char_por_key(t_config* config, char* key)
+{
+	if(config_has_property(config, key))
+	{
+		return config_get_string_value(config, key);
+	}
+
+	return "";
 }
 
 void leer_consola(t_log* logger)
@@ -103,4 +126,5 @@ void terminar_programa(int conexion, t_log* logger, t_config* config)
 	  con las funciones de las commons y del TP mencionadas en el enunciado */
 
 	log_destroy(logger);
+	config_destroy(config);
 }
