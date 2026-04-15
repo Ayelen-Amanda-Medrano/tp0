@@ -105,6 +105,8 @@ void leer_consola(t_log* logger)
 	while(leido[0] != '\0')
 	{
 		log_info(logger, leido);
+		add_history(leido);
+
 		// ¡No te olvides de liberar las lineas antes de regresar!
 		free(leido);
 		leido = readline("> ");
