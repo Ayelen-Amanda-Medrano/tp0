@@ -4,9 +4,6 @@ t_log* logger;
 
 int iniciar_servidor(void)
 {
-	// Quitar esta línea cuando hayamos terminado de implementar la funcion
-	assert(!"no implementado!");
-
 	int socket_servidor;
 
 	struct addrinfo hints, *servinfo, *p;
@@ -19,10 +16,22 @@ int iniciar_servidor(void)
 	getaddrinfo(NULL, PUERTO, &hints, &servinfo);
 
 	// Creamos el socket de escucha del servidor
+	socket_servidor = socket(servinfo->ai_family,
+						servinfo->ai_socktype,
+						servinfo->ai_protocol);
+
+	if (socket_servidor == -1)
+	{
+		perror("Error al crear socket");
+		freeaddrinfo(servinfo);
+		exit(EXIT_FAILURE);
+	}
 
 	// Asociamos el socket a un puerto
+	bind(socket_servidor, servinfo->ai_addr, servinfo->ai_addrlen);
 
 	// Escuchamos las conexiones entrantes
+	listen(socket_servidor, SOMAXCONN);
 
 	freeaddrinfo(servinfo);
 	log_trace(logger, "Listo para escuchar a mi cliente");
@@ -32,11 +41,9 @@ int iniciar_servidor(void)
 
 int esperar_cliente(int socket_servidor)
 {
-	// Quitar esta línea cuando hayamos terminado de implementar la funcion
-	assert(!"no implementado!");
-
 	// Aceptamos un nuevo cliente
 	int socket_cliente;
+	socket_cliente = accept(socket_servidor, NULL, NULL);
 	log_info(logger, "Se conecto un cliente!");
 
 	return socket_cliente;
@@ -56,13 +63,15 @@ int recibir_operacion(int socket_cliente)
 
 void* recibir_buffer(int* size, int socket_cliente)
 {
-	void * buffer;
+    void * buffer;
 
-	recv(socket_cliente, size, sizeof(int), MSG_WAITALL);
-	buffer = malloc(*size);
-	recv(socket_cliente, buffer, *size, MSG_WAITALL);
+    recv(socket_cliente, size, sizeof(int), MSG_WAITALL);
 
-	return buffer;
+    buffer = malloc(*size);
+
+    recv(socket_cliente, buffer, *size, MSG_WAITALL);
+
+    return buffer;
 }
 
 void recibir_mensaje(int socket_cliente)
@@ -84,10 +93,10 @@ t_list* recibir_paquete(int socket_cliente)
 	buffer = recibir_buffer(&size, socket_cliente);
 	while(desplazamiento < size)
 	{
-		memcpy(&tamanio, buffer + desplazamiento, sizeof(int));
+		memcpy(&tamanio, (char*)buffer + desplazamiento, sizeof(int));
 		desplazamiento+=sizeof(int);
 		char* valor = malloc(tamanio);
-		memcpy(valor, buffer+desplazamiento, tamanio);
+		memcpy(valor, (char*)buffer+desplazamiento, tamanio);
 		desplazamiento+=tamanio;
 		list_add(valores, valor);
 	}
